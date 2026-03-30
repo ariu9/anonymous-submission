@@ -1,16 +1,18 @@
 ## Reviewer Question 1
 
-> "The approach relies heavily on visible HUD elements (minimap, event logs), limiting applicability to games with minimal UI or cinematic-style recordings."
+**Reg. generalizability of the Salient Interaction Module**
 
-We agree that this is an important limitation to clarify. In the current work, the Salient Interaction Module is designed for **UI-rich gameplay videos** where interaction cues are observable on the game screen itself. This assumption is also common in prior game-video understanding work, where on-screen cues such as OCR-recognized text and HUD elements are often used because they provide compact summaries of game state. Our method also operates in this practical setting, but it does not rely on external APIs or text-based cues. Instead, it relies on visual interaction signals within the game screen itself, specifically on-screen event-log regions with champion icons, as structured indicators of gameplay interactions. We will clarify this scope more explicitly in the revision.
+> “How could the Salient Interaction Module adapt ... pixel-level character behavior?”
 
-## Reviewer Question 2
 
-> "Generalizability: How could the Salient Interaction Module adapt to games without explicit event logs or minimaps? Is it feasible to detect interactions solely from pixel-level character behavior?"
+The current **Salient Interaction Module** is designed for **HUD-rich broadcast gameplay videos**, where cues such as **event logs** and **minimap icons** are explicitly available on screen. We chose this setting intentionally because, unlike general videos, gameplay videos often expose structured state information that directly reflects player and object interactions. This design also enables **temporally precise event detection directly from the video itself**, without relying on external APIs or game metadata.
 
-We believe this is feasible in principle, but it would require a different front-end than the one used in the current paper. Rather than relying on event logs with champion icons that appear on the gameplay screen, a future system could infer visual interaction signals directly from raw visual observations such as character trajectories, proximity patterns, combat engagement, camera dynamics, or multi-agent coordination patterns, without depending on HUD- or log-like cues. After obtaining such interaction signals, KDE or a similar temporal grouping mechanism could still be applied to identify salient interaction segments.
+Detecting interaction units solely from **pixel-level character behavior** is certainly an important direction. However, in fast-paced game environments with frequent motion, camera shifts, overlapping visual effects, and multiple agents acting simultaneously, purely pixel-based interaction detection remains considerably more challenging. We therefore use visible HUD cues as reliable anchors for accurate interaction timing in the current work.
 
-So our view is that the main limitation lies in the **current source of interaction cues**, not necessarily in the interaction-segment formulation itself. We will state this more clearly as a limitation and future extension direction in the revision.
+Our design is also motivated by robustness under realistic broadcast and streaming conditions. Since our goal is to support short-form generation not only for professional broadcasts but also for user-recorded gameplay, we formulate event recognition as an **object-detection** problem, as gameplay HUD elements are small, partially overlapping, and easily confused with the background.
+
+Extending the module to gameplay videos where explicit event logs or minimaps are not available, through direct visual behavior modeling, is an important direction for future work. We will clarify this scope more explicitly in the revision.
+
 
 # KDE Bandwidth Sensitivity for Key Interaction Segment Selection
 
@@ -94,3 +96,22 @@ The qualitative examples support the same pattern seen in the quantitative resul
 - Small bandwidths produce fragmented segments that often fail to capture complete interactions.
 - Large bandwidths merge temporally nearby events into overly broad intervals that can extend beyond the annotated highlight regions.
 - The selected setting `h = 3.2` produces segments that remain temporally concise while still aligning well with the ground-truth highlight intervals.
+
+
+**Reg. comparison with broader baselines**
+
+> “While domain-specific baselines ... Video-LLaVA or Gemini Pro Vision.”
+
+To address it, we expanded the comparison not only to a general-purpose video-language model (Video-LLaVA) in a zero-shot setting, but also to broader dense video captioning baselines (Vid2Seq and CM²), in addition to the game-specific baseline LoL-V2T.
+
+| Model | BLEU-3 | BLEU-4 | METEOR | ROUGE-L | CIDEr | CLIP-S | BERT-S |
+|:------|:------:|:------:|:------:|:-------:|:-----:|:------:|:------:|
+| Video-LLaVA | 0.13 | 0.00 | 3.14 | 6.84 | 0.01 | 26.49 | 7.89 |
+| Vid2Seq | 0.01 | 0.01 | 3.18 | 2.13 | 0.01 | 21.99 | 0.00 |
+| CM² | 0.09 | 0.00 | 8.33 | 10.56 | 0.01 | 24.08 | 14.75 |
+| LoL-V2T | 2.17 | 1.25 | 12.26 | 12.66 | 8.34 | 28.95 | 17.86 |
+| Ours | 3.17 | 1.54 | 16.05 | 15.31 | 7.14 | 28.06 | 24.64 |
+
+*Video-LLaVA is evaluated in a zero-shot setting without task-specific training. Vid2Seq, CM2, and LoL-V2T are trained on our dataset for comparison, and our method is trained on the same dataset.*
+
+As shown above, these broader baselines underperform our method on this task, suggesting that interaction-heavy gameplay commentary requires stronger domain-specific grounding than generic transfer alone can provide.
