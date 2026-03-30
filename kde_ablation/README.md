@@ -95,13 +95,13 @@ Original PDF: [24_summer.pdf](./24_summer.pdf)
 
 ## 2. KDE bandwidth ablation: quantitative result
 
-### `kde_bandwidth_gt_curve.png`
+### `kde_bandwidth_time_f1_curve.png`
 
 This figure summarizes the **quantitative ablation study** over KDE bandwidth values for the KDE-based Key Interaction Segment selection method.
 
 - As bandwidth `h` increases, recall generally improves because predicted segments become broader.
-- Precision tends to decrease because broader segments include more temporally irrelevant regions.
-- Although `h = 7.0` gives the highest mean F1, `h = 3.2` is selected as a precision-preserving operating point that still keeps recall and F1 competitive.
+- Precision tends to decrease as broader segments include more temporally irrelevant regions.
+- Although `h = 7.0` gives the highest mean F1, `h = 3.2` gives the smallest mean duration difference and the best equal-weight combined score, making it a conservative operating point for temporally concise localization.
 
 This corresponds to the bandwidth sensitivity analysis described in the paper for KDE-based segment extraction.
 
@@ -121,17 +121,17 @@ The KDE bandwidth ablation uses the following main settings:
 
 This is the quantitative **KDE ablation study** table reported for the manually aligned highlight ground-truth set.
 
-| `h` | Precision | Recall | F1 |
-| --- | --- | --- | --- |
-| 1.0 | 0.9941 | 0.1089 | 0.1945 |
-| 3.2 | 0.9480 | 0.2123 | 0.3433 |
-| 5.0 | 0.9581 | 0.1682 | 0.2828 |
-| 7.0 | 0.9209 | 0.2555 | 0.3962 |
-| 10.0 | 0.9283 | 0.2425 | 0.3819 |
-| 15.0 | 0.9581 | 0.1682 | 0.2828 |
-| 20.0 | 0.9853 | 0.1323 | 0.2258 |
+| `h` | Precision | Recall | F1 | Mean Duration Diff |
+| --- | --- | --- | --- | --- |
+| 1.0 | 0.9443 | 0.1155 | 0.2034 | 8.19 |
+| 3.2 | 0.9132 | 0.2256 | 0.3578 | 1.80 |
+| 5.0 | 0.8848 | 0.2557 | 0.3913 | 3.11 |
+| 7.0 | 0.8606 | 0.2627 | 0.3983 | 4.85 |
+| 10.0 | 0.8484 | 0.2442 | 0.3764 | 5.17 |
+| 15.0 | 0.8227 | 0.1574 | 0.2613 | 10.91 |
+| 20.0 | 0.8641 | 0.1231 | 0.2080 | 10.23 |
 
-![KDE bandwidth sensitivity curve](./kde_bandwidth_gt_curve.png)
+![KDE bandwidth sensitivity curve](./kde_bandwidth_time_f1_curve.png)
 
 ## 3. KDE bandwidth ablation: qualitative comparison
 

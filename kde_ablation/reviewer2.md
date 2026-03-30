@@ -45,3 +45,17 @@ Thus, the model is not conditioned on an event token alone, but on multiple temp
 We include a video demo of the full pipeline, i.e., highlight extraction from full gameplay videos and the corresponding generated captions.
 
 Video demo: https://anonymous.4open.science/r/anonymous-submission-27793/README.md
+
+
+**Reg. Bandwidth Sensitivity**
+
+We evaluated KDE segment extraction across bandwidth values using manually aligned ground-truth highlight intervals from the same matches. The results show a clear tradeoff: larger `h` improves recall and mean F1, but also broadens the predicted segments, while smaller `h` keeps segments tighter but fragments interactions.
+
+| `h` | Precision | Recall | F1 | Mean Duration Diff |
+|:---:|:---------:|:------:|:--:|:------------------:|
+| 1.0 | 0.9443 | 0.1155 | 0.2034 | 8.19 |
+| 3.2 | 0.9132 | 0.2256 | 0.3578 | 1.80 |
+| 5.0 | 0.8848 | 0.2557 | 0.3913 | 3.11 |
+| 7.0 | 0.8606 | 0.2627 | 0.3983 | 4.85 |
+
+Mean Duration Diff measures how far predicted length differs from GT length. Although `h = 7.0` gives the highest mean F1, `h = 3.2` gives the smallest mean duration difference and better matches the temporal extent of the ground-truth highlights. We therefore keep `h = 3.2` as a conservative operating point for concise localization. Supporting curves and multi-`h` GT comparison figures are provided here: https://anonymous.4open.science/r/anonymous-submission-27793/bw.md

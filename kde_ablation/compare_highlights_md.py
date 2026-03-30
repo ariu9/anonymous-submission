@@ -71,7 +71,7 @@ def compact_plot_title(text: str) -> str:
     return clean
 
 
-def _parse_block(block_lines):
+def _parse_block(block_lines, metadata_lines=None):
     lines = [line.strip() for line in block_lines if line.strip()]
     if len(lines) < 4:
         raise ValueError("Each GT block must contain title, sync line, and at least one interval pair.")
@@ -93,11 +93,17 @@ def _parse_block(block_lines):
             "video_end_sec": end_game + sync_point,
         })
 
+    metadata_lines = [line.strip() for line in (metadata_lines or []) if line.strip()]
+    source_url = metadata_lines[0] if len(metadata_lines) >= 1 else None
+    source_name = metadata_lines[1] if len(metadata_lines) >= 2 else None
+
     return {
         "title": title,
         "sync_point": sync_point,
         "highlight_intervals": highlight_intervals,
         "slug": slugify_filename(title),
+        "source_url": source_url,
+        "source_name": source_name,
     }
 
 
@@ -121,6 +127,20 @@ def parse_gt_blocks(path: Path):
         if i >= n:
             raise ValueError(f"Missing sync line after title: {title}")
 
+        metadata_lines = []
+        while i < n:
+            line = raw_lines[i].strip()
+            if not line:
+                i += 1
+                continue
+            if line.isdigit():
+                break
+            metadata_lines.append(line)
+            i += 1
+
+        if i >= n:
+            raise ValueError(f"Missing sync line after title: {title}")
+
         sync = raw_lines[i].strip()
         i += 1
 
@@ -135,7 +155,7 @@ def parse_gt_blocks(path: Path):
             times.append(line)
             i += 1
 
-        blocks.append(_parse_block([title, sync, *times]))
+        blocks.append(_parse_block([title, sync, *times], metadata_lines=metadata_lines))
 
     if not blocks:
         raise ValueError("GT file does not contain any valid match blocks.")
@@ -176,10 +196,19 @@ def total_interval_seconds(intervals):
     return sum(max(0.0, iv["end"] - iv["start"]) for iv in intervals)
 
 
+def mean_interval_seconds(intervals):
+    if not intervals:
+        return 0.0
+    durations = [max(0.0, iv["end"] - iv["start"]) for iv in intervals]
+    return float(sum(durations) / len(durations))
+
+
 def compute_time_metrics(pred_intervals, gt_intervals):
     pred_total = total_interval_seconds(pred_intervals)
     gt_total = total_interval_seconds(gt_intervals)
     overlap_total = 0.0
+    pred_mean_duration = mean_interval_seconds(pred_intervals)
+    gt_mean_duration = mean_interval_seconds(gt_intervals)
 
     for pred in pred_intervals:
         for gt in gt_intervals:
@@ -195,6 +224,9 @@ def compute_time_metrics(pred_intervals, gt_intervals):
         "time_precision": precision,
         "time_recall": recall,
         "time_f1": f1,
+        "pred_mean_duration_sec": pred_mean_duration,
+        "gt_mean_duration_sec": gt_mean_duration,
+        "duration_diff_sec": abs(pred_mean_duration - gt_mean_duration),
     }
 
 
@@ -898,9 +930,16 @@ def build_comparison_for_block(block, gt_path: Path, out_dir: Path, method_info)
     lines.append(f"# Highlight Comparison — {title}")
     lines.append("")
     lines.append(f"- Source GT file: `{gt_path.name}`")
+    if block.get("source_url"):
+        lines.append(f"- Source URL: `{block['source_url']}`")
+    if block.get("source_name"):
+        lines.append(f"- Source video name: `{block['source_name']}`")
     lines.append(f"- Sync point: `{seconds_to_mmss(sync_point)}` video time = game `00:00`")
     lines.append(f"- Ground-truth highlight intervals: `{len(highlight_intervals)}`")
+    lines.append(f"- GT mean duration: `{best['metrics']['gt_mean_duration_sec']:.2f}s`")
     lines.append(f"- Best by time F1: `{best['method_name']}` ({best['metrics']['time_f1']:.4f})")
+    best_duration = min(matched, key=lambda item: item["metrics"]["duration_diff_sec"])
+    lines.append(f"- Best by duration diff: `{best_duration['method_name']}` ({best_duration['metrics']['duration_diff_sec']:.2f}s)`")
     lines.append("")
     if multi_kde_plot_path is not None:
         rel_multi_kde_plot = os.path.relpath(multi_kde_plot_path, out_dir)
@@ -928,6 +967,9 @@ def build_comparison_for_block(block, gt_path: Path, out_dir: Path, method_info)
             "precision": f"{item['metrics']['time_precision']:.4f}",
             "recall": f"{item['metrics']['time_recall']:.4f}",
             "f1": f"{item['metrics']['time_f1']:.4f}",
+            "gt_mean_duration_sec": f"{item['metrics']['gt_mean_duration_sec']:.2f}",
+            "pred_mean_duration_sec": f"{item['metrics']['pred_mean_duration_sec']:.2f}",
+            "duration_diff_sec": f"{item['metrics']['duration_diff_sec']:.2f}",
         })
     lines.append(format_table(metric_rows, [
         ("method", "Method"),
@@ -938,6 +980,9 @@ def build_comparison_for_block(block, gt_path: Path, out_dir: Path, method_info)
         ("precision", "Time Precision"),
         ("recall", "Time Recall"),
         ("f1", "Time F1"),
+        ("gt_mean_duration_sec", "GT Mean Dur"),
+        ("pred_mean_duration_sec", "Pred Mean Dur"),
+        ("duration_diff_sec", "Dur Diff"),
     ]))
     lines.append("")
 
@@ -953,7 +998,10 @@ def build_comparison_for_block(block, gt_path: Path, out_dir: Path, method_info)
         lines.append(
             f"Time precision `{item['metrics']['time_precision']:.4f}`, "
             f"time recall `{item['metrics']['time_recall']:.4f}`, "
-            f"time F1 `{item['metrics']['time_f1']:.4f}`."
+            f"time F1 `{item['metrics']['time_f1']:.4f}`, "
+            f"GT mean duration `{item['metrics']['gt_mean_duration_sec']:.2f}s`, "
+            f"pred mean duration `{item['metrics']['pred_mean_duration_sec']:.2f}s`, "
+            f"duration diff `{item['metrics']['duration_diff_sec']:.2f}s`."
         )
         lines.append("")
         segment_rows = build_segment_rows(item["segments"])
@@ -984,6 +1032,7 @@ def write_aggregate_method_summary(out_dir: Path, gt_path: Path, block_summaries
                 "time_precision": float(item["metrics"]["time_precision"]),
                 "time_recall": float(item["metrics"]["time_recall"]),
                 "time_f1": float(item["metrics"]["time_f1"]),
+                "duration_diff_sec": float(item["metrics"]["duration_diff_sec"]),
                 "num_segments": int(len(item["segments"])),
             })
 
@@ -996,6 +1045,7 @@ def write_aggregate_method_summary(out_dir: Path, gt_path: Path, block_summaries
         precisions = np.array([row["time_precision"] for row in rows], dtype=float)
         recalls = np.array([row["time_recall"] for row in rows], dtype=float)
         f1s = np.array([row["time_f1"] for row in rows], dtype=float)
+        duration_diffs = np.array([row["duration_diff_sec"] for row in rows], dtype=float)
         seg_counts = np.array([row["num_segments"] for row in rows], dtype=float)
         summary_rows.append({
             "method": method_name,
@@ -1003,9 +1053,11 @@ def write_aggregate_method_summary(out_dir: Path, gt_path: Path, block_summaries
             "mean_precision": f"{float(precisions.mean()):.4f}",
             "mean_recall": f"{float(recalls.mean()):.4f}",
             "mean_f1": f"{float(f1s.mean()):.4f}",
+            "mean_duration_diff_sec": f"{float(duration_diffs.mean()):.2f}",
             "std_precision": f"{float(precisions.std(ddof=0)):.4f}",
             "std_recall": f"{float(recalls.std(ddof=0)):.4f}",
             "std_f1": f"{float(f1s.std(ddof=0)):.4f}",
+            "std_duration_diff_sec": f"{float(duration_diffs.std(ddof=0)):.2f}",
             "mean_segments": f"{float(seg_counts.mean()):.2f}",
         })
         for row in rows:
@@ -1015,6 +1067,7 @@ def write_aggregate_method_summary(out_dir: Path, gt_path: Path, block_summaries
                 "precision": f"{row['time_precision']:.4f}",
                 "recall": f"{row['time_recall']:.4f}",
                 "f1": f"{row['time_f1']:.4f}",
+                "duration_diff_sec": f"{row['duration_diff_sec']:.2f}",
                 "segments": row["num_segments"],
             })
 
@@ -1043,9 +1096,11 @@ def write_aggregate_method_summary(out_dir: Path, gt_path: Path, block_summaries
         ("mean_precision", "Mean Precision"),
         ("mean_recall", "Mean Recall"),
         ("mean_f1", "Mean F1"),
+        ("mean_duration_diff_sec", "Mean Dur Diff"),
         ("std_precision", "Std Precision"),
         ("std_recall", "Std Recall"),
         ("std_f1", "Std F1"),
+        ("std_duration_diff_sec", "Std Dur Diff"),
         ("mean_segments", "Mean # Segments"),
     ]))
     lines.append("")
@@ -1057,6 +1112,7 @@ def write_aggregate_method_summary(out_dir: Path, gt_path: Path, block_summaries
         ("precision", "Precision"),
         ("recall", "Recall"),
         ("f1", "F1"),
+        ("duration_diff_sec", "Dur Diff"),
         ("segments", "# Segments"),
     ]))
     lines.append("")
