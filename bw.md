@@ -10,12 +10,19 @@
 | 15.0 | 0.8227 | 0.1574 | 0.2613 | 21.37 | 32.28 | 10.91 |
 | 20.0 | 0.8641 | 0.1231 | 0.2080 | 21.37 | 31.60 | 10.23 |
 
+*Mean GT Duration denotes the average duration of the aligned ground-truth highlight intervals across the evaluated matches.*
+
+**Figure 1. Mean precision, recall, and F1 across KDE bandwidths.**
 ![KDE bandwidth precision-recall-F1 curve](./kde_ablation/kde_bandwidth_time_f1_curve.png)
 
+**Figure 2. Mean GT duration, predicted duration, and duration difference across KDE bandwidths.**
 ![KDE bandwidth duration alignment curve](./kde_ablation/kde_bandwidth_duration_diff_curve.png)
 
+**Figure 3. Multi-bandwidth qualitative comparison against GT highlights, example 1.**
 ![KDE multi-h GT comparison 1](./kde_ablation/NS_vs_DK_-_BRO_vs_T1_2024_LCK_4_multi_kde_rect_comparison.png)
 
+**Figure 4. Multi-bandwidth qualitative comparison against GT highlights, example 2.**
 ![KDE multi-h GT comparison 2](./kde_ablation/T1_vs_NS_-_HLE_vs_KT_2024_LCK_4_multi_kde_rect_comparison.png)
 
+**Figure 5. Multi-bandwidth qualitative comparison against GT highlights, example 3.**
 ![KDE multi-h GT comparison 3](./kde_ablation/GEN_vs_DRX_-_KT_vs_DK_2023_LCK_3_multi_kde_rect_comparison.png)

@@ -49,7 +49,7 @@ Video demo: https://anonymous.4open.science/r/anonymous-submission-27793/README.
 
 **Reg. Bandwidth Sensitivity**
 
-We evaluated KDE segment extraction across bandwidth values using manually aligned ground-truth highlight intervals from the same matches. The results show a clear tradeoff: larger `h` improves recall and mean F1, but also broadens the predicted segments, while smaller `h` keeps segments tighter but fragments interactions.
+We evaluated KDE segment extraction across bandwidth values using manually aligned ground-truth highlight intervals from the same matches. Visuals: https://anonymous.4open.science/r/anonymous-submission-27793/bw.md. The results show a clear tradeoff: larger `h` improves recall and mean F1 but broadens the predicted segments, while smaller `h` keeps segments tighter but fragments interactions.
 
 | `h` | Precision | Recall | F1 | Mean Duration Diff |
 |:---:|:---------:|:------:|:--:|:------------------:|
@@ -58,4 +58,4 @@ We evaluated KDE segment extraction across bandwidth values using manually align
 | 5.0 | 0.8848 | 0.2557 | 0.3913 | 3.11 |
 | 7.0 | 0.8606 | 0.2627 | 0.3983 | 4.85 |
 
-Mean Duration Diff measures how far predicted length differs from GT length. Although `h = 7.0` gives the highest mean F1, `h = 3.2` gives the smallest mean duration difference and better matches the temporal extent of the ground-truth highlights. We therefore keep `h = 3.2` as a conservative operating point for concise localization. Supporting curves and multi-`h` GT comparison figures are provided here: https://anonymous.4open.science/r/anonymous-submission-27793/bw.md
+Mean Duration Diff measures the gap between predicted and GT length. In supplementary Figs. 1-2, `h = 7.0` gives the highest mean F1, while `h = 3.2` gives the smallest duration difference and better matches the temporal extent of the ground-truth highlights. The same pattern appears in the multi-`h` GT comparisons (Figs. 3-5). We keep `h = 3.2` as the operating point for concise localization.
