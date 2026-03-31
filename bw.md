@@ -19,10 +19,10 @@
 ![KDE bandwidth duration alignment curve](./kde_ablation/kde_bandwidth_duration_diff_curve.png)
 
 **Figure 3. Multi-bandwidth qualitative comparison against GT highlights, example 1.**
-![KDE multi-h GT comparison 1](./kde_ablation/NS_vs_DK_-_BRO_vs_T1_2024_LCK_4_multi_kde_rect_comparison.png)
+![KDE multi-h GT comparison 1](./kde_ablation/2024_LCK_spring_multi_kde_rect_comparison.png)
 
 **Figure 4. Multi-bandwidth qualitative comparison against GT highlights, example 2.**
-![KDE multi-h GT comparison 2](./kde_ablation/T1_vs_NS_-_HLE_vs_KT_2024_LCK_4_multi_kde_rect_comparison.png)
+![KDE multi-h GT comparison 2](./kde_ablation/2024_LCK_summer_multi_kde_rect_comparison.png)
 
 **Figure 5. Multi-bandwidth qualitative comparison against GT highlights, example 3.**
-![KDE multi-h GT comparison 3](./kde_ablation/GEN_vs_DRX_-_KT_vs_DK_2023_LCK_3_multi_kde_rect_comparison.png)
+![KDE multi-h GT comparison 3](./kde_ablation/2023_LCK_summer_multi_kde_rect_comparison.png)
