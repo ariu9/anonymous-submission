@@ -22,6 +22,16 @@ Full video with voice narration:
 ```text
 .
 ├── README.md
-└── assets
-    ├── demo.gif
-    └── demo.mp4
+└── kde_ablation
+    ├── 2023_LCK_summer_multi_kde_rect_comparison.png
+    ├── 2024_LCK_spring_multi_kde_rect_comparison.png
+    ├── 2024_LCK_summer_multi_kde_rect_comparison.png
+    ├── 23_summer2.png
+    ├── 24_spring2.png
+    ├── 24_summer2.png
+    ├── kde_bandwidth_duration_diff_curve.png
+    ├── kde_bandwidth_time_f1_curve.png
+    ├── README.md
+    ├── bw.md
+    ├── demo.mp4
+    └── mm.md
